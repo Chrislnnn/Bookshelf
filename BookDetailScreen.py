@@ -1,10 +1,10 @@
-from kivy.uix.screenmanager import Screen, SlideTransition
 import sqlite3
-
+from kivy.uix.screenmanager import Screen
 
 class BookDetailScreen(Screen):
 
     def load_book(self, book_details):
+        # Widgets mit den übergebenen Informationen ausfüllen
         self.ids.book_cover.source = book_details['cover']
         self.ids.book_title.text = book_details['title']
         self.ids.book_authors.text = book_details['authors']
@@ -16,17 +16,16 @@ class BookDetailScreen(Screen):
         self.ids.book_maturity_rating.text = book_details['maturityRating']
 
     def add_to_read(self):
+        # Buch soll nicht mehrfach eingetragen werden können
+        # Prüfen, ob Eintrag mit identischen Titel und Autor bereits existiert (wenn ja, dann return)
         conn = sqlite3.connect('books_database.db')
         cursor = conn.cursor()
-
-        cursor.execute(
-            "SELECT id FROM read_books WHERE title = ? AND author = ?",
-            (self.ids.book_title.text, self.ids.book_authors.text)
-        )
+        cursor.execute("SELECT id FROM read_books WHERE title = ? AND author = ?",(self.ids.book_title.text, self.ids.book_authors.text))
         exists = cursor.fetchone()
         if exists:
             return
 
+        # Neuen Eintrag in der Tabelle der bereits gelesenen Bücher erstellen
         cursor.execute(
             "INSERT INTO read_books (cover, title, author, publication_year, genre, rating, description, page_count, publisher, maturity_rating, finished_date)"
             " VALUES (:cover, :title, :author, :publication_year, :genre, :rating, :description, :page_count, :publisher, :maturity_rating, :finished_date)",
@@ -49,17 +48,16 @@ class BookDetailScreen(Screen):
 
 
     def add_to_reading(self):
+        # Buch soll nicht mehrfach eingetragen werden können
+        # Prüfen, ob Eintrag mit identischen Titel und Autor bereits existiert (wenn ja, dann return)
         conn = sqlite3.connect('books_database.db')
         cursor = conn.cursor()
-
-        cursor.execute(
-            "SELECT id FROM reading_books WHERE title = ? AND author = ?",
-            (self.ids.book_title.text, self.ids.book_authors.text)
-        )
+        cursor.execute("SELECT id FROM reading_books WHERE title = ? AND author = ?",(self.ids.book_title.text, self.ids.book_authors.text))
         exists = cursor.fetchone()
         if exists:
             return
 
+        # Neuen Eintrag in der Tabelle der momentan Bücher erstellen
         cursor.execute(
             "INSERT INTO reading_books (cover, title, author, publication_year, genre, description, page_count, publisher, maturity_rating)"
             " VALUES (:cover, :title, :author, :publication_year, :genre, :description, :page_count, :publisher, :maturity_rating)",
@@ -79,17 +77,16 @@ class BookDetailScreen(Screen):
         conn.close()
 
     def add_to_future(self):
+        # Buch soll nicht mehrfach eingetragen werden können
+        # Prüfen, ob Eintrag mit identischen Titel und Autor bereits existiert (wenn ja, dann return)
         conn = sqlite3.connect('books_database.db')
         cursor = conn.cursor()
-
-        cursor.execute(
-            "SELECT id FROM tbr_books WHERE title = ? AND author = ?",
-            (self.ids.book_title.text, self.ids.book_authors.text)
-        )
+        cursor.execute( "SELECT id FROM tbr_books WHERE title = ? AND author = ?",(self.ids.book_title.text, self.ids.book_authors.text))
         exists = cursor.fetchone()
         if exists:
             return
 
+        # Neuen Eintrag in der Tabelle der zukünftigen Bücher erstellen
         cursor.execute(
             "INSERT INTO tbr_books (cover, title, author, publication_year, genre, description, page_count, publisher, maturity_rating)"
             " VALUES (:cover, :title, :author, :publication_year, :genre, :description, :page_count, :publisher, :maturity_rating)",
@@ -107,4 +104,3 @@ class BookDetailScreen(Screen):
 
         conn.commit()
         conn.close()
-    pass

@@ -1,15 +1,17 @@
-from kivy.core.window import Window
-import matplotlib.pyplot as plt
 import sqlite3
+from kivy.core.window import Window
 from kivy.uix.screenmanager import Screen
 from kivy.uix.image import Image
-import io
 from kivy.uix.widget import Widget
+import matplotlib.pyplot as plt
+import io
 
 class StatisticsScreen(Screen):
     def __init__(self, **kwargs):
         super(StatisticsScreen, self).__init__(**kwargs)
 
+    # Methode, die die Anzahl an Büchern in den 3 unterschiedlichen Tabellen zurückgibt
+    # Gibt jeweils 0 aus, wenn keine Einträge in jeweiligen Tabelle vorhanden sind
     def get_books_count(self):
         conn = sqlite3.connect('books_database.db')
         cursor = conn.cursor()
@@ -22,6 +24,7 @@ class StatisticsScreen(Screen):
         conn.close()
         return [('Read', read_count), ('Reading', reading_count), ('Future', future_count)]
 
+    # Methode, die die Anzahl an gelesenen Bücher pro Monat zurückgibt (diese müssen ein finished date besitzen)
     def get_books_per_month(self):
         conn = sqlite3.connect('books_database.db')
         cursor = conn.cursor()
@@ -32,14 +35,16 @@ class StatisticsScreen(Screen):
             GROUP BY month
             ORDER BY month
         """)
-        data = cursor.fetchall()
+        books_per_month = cursor.fetchall()
         conn.close()
 
-        if not data:
-            data = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0), (9, 0), (10, 0), (11, 0), (12, 0)]
+        # Wenn keine Einträge mit finished date vorhanden sind, werden alle Monate auf 0 gesetzt
+        if not books_per_month:
+            books_per_month = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0), (9, 0), (10, 0), (11, 0), (12, 0)]
 
-        return data
+        return books_per_month
 
+    # Methode, die die Anzahl an gelesenen Seiten pro Monat zurückgibt (diese müssen ein finished date besitzen)
     def get_pages_per_month(self):
         conn = sqlite3.connect('books_database.db')
         cursor = conn.cursor()
@@ -50,15 +55,17 @@ class StatisticsScreen(Screen):
             GROUP BY month
             ORDER BY month
         """)
-        data = cursor.fetchall()
+        pages_per_month = cursor.fetchall()
         conn.close()
 
-        if not data:
-            data = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0), (9, 0), (10, 0), (11, 0), (12, 0)]
+        # Wenn keine Einträge mit finished date vorhanden sind, werden alle Monate auf 0 gesetzt
+        if not pages_per_month:
+            pages_per_month = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0), (9, 0), (10, 0), (11, 0), (12, 0)]
 
-        print("Daten aus der Datenbank: ", data)  # Drucken der Daten zum Debuggen
-        return data
+        print("Daten aus der Datenbank: ", pages_per_month)  # Drucken der Daten zum Debuggen
+        return pages_per_month
 
+    # Methode, die die Anzahl an Büchern pro Rating (0-5 Sterne zurückgibt)
     def get_ratings_distribution(self):
         conn = sqlite3.connect('books_database.db')
         cursor = conn.cursor()
@@ -72,6 +79,7 @@ class StatisticsScreen(Screen):
         data = cursor.fetchall()
         conn.close()
 
+        # Wenn noch keine Bewertungen in der Tabelle vorliegen, werden alle auf 0 gesetzt
         if not data:
             data = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0)]
 
@@ -93,14 +101,15 @@ class StatisticsScreen(Screen):
         self.pages_read_per_month = Image(size_hint=(1, None), height=self.plot_height, keep_ratio=True, allow_stretch=True)
         self.rating_distribution = Image(size_hint=(1, None), height=self.plot_height, keep_ratio=True, allow_stretch=True)
 
+        # Erstellung der Diagramme
         self.books_count_plot()
         self.books_per_month_plot()
         self.pages_per_month_plot()
         self.rating_distribution_plot()
 
+        # Image (Diagramm) zu graphs (GridLayout im ScrollView) hinzufügen
         self.ids.graphs.add_widget(self.book_count_image)
-
-        # Divider (Linie) zwischen den Plots hinzufügen
+        # Divider (Linie) zwischen den Diagrammen hinzufügen
         divider1 = Widget(size_hint_y=None, height=1)
         with divider1.canvas.before:
             from kivy.graphics import Color, Rectangle
@@ -110,9 +119,9 @@ class StatisticsScreen(Screen):
                           size=lambda *a: setattr(divider1.rect, 'size', divider1.size))
         self.ids.graphs.add_widget(divider1)
 
+        # Image (Diagramm) zu graphs (GridLayout im ScrollView) hinzufügen
         self.ids.graphs.add_widget(self.books_read_per_month)
-
-        # Divider (Linie) zwischen den Plots hinzufügen
+        # Divider (Linie) zwischen den Diagrammen hinzufügen
         divider2 = Widget(size_hint_y=None, height=1)
         with divider2.canvas.before:
             from kivy.graphics import Color, Rectangle
@@ -122,9 +131,9 @@ class StatisticsScreen(Screen):
                           size=lambda *a: setattr(divider2.rect, 'size', divider2.size))
         self.ids.graphs.add_widget(divider2)
 
+        # Image (Diagramm) zu graphs (GridLayout im ScrollView) hinzufügen
         self.ids.graphs.add_widget(self.pages_read_per_month)
-
-        # Divider (Linie) zwischen den Plots hinzufügen
+        # Divider (Linie) zwischen den Diagrammen hinzufügen
         divider3 = Widget(size_hint_y=None, height=1)
         with divider3.canvas.before:
             from kivy.graphics import Color, Rectangle
@@ -134,18 +143,10 @@ class StatisticsScreen(Screen):
                           size=lambda *a: setattr(divider3.rect, 'size', divider3.size))
         self.ids.graphs.add_widget(divider3)
 
+        # Image (Diagramm) zu graphs (GridLayout im ScrollView) hinzufügen
         self.ids.graphs.add_widget(self.rating_distribution)
 
-    def setup_figure(self):
-        dpi = 100
-        fig_width = Window.width / dpi
-        fig_height = self.plot_height / dpi
-        base_font = Window.width / 30
-        title_size = base_font * 2
-        label_size = base_font * 1.3
-        tick_size = base_font * 0.9
-        return fig_width, fig_height, dpi, title_size, label_size, tick_size
-
+    # Methode für die Darstellung des mit Matplotlib erstellten Diagramms in einem Kivy Image-Widget
     def save_plot_to_image(self, fig, image_widget):
         buf = io.BytesIO()
         fig.savefig(buf, format='png', bbox_inches='tight')
@@ -162,7 +163,9 @@ class StatisticsScreen(Screen):
         buf.close()
         plt.close(fig)
 
+    # Erstellung des Diagramms Anzahl an Büchern pro Kategorie (gelesen, momentan am Lesen, zukünftige Bücher)
     def books_count_plot(self):
+        # SQL Abfrage, um die Daten aus der Datenbank zu erhalten
         books_count = self.get_books_count()
 
         # Größeneinstellungen (Schrift und Diagramm)
@@ -175,21 +178,26 @@ class StatisticsScreen(Screen):
         tick_size = base_font * 0.9
 
         if books_count:
+            # Kategorien gegen Anzahl der Bücher auftragen
             categories, counts = zip(*books_count)
             fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi)
 
             # Säulendiagramm erstellen
             ax.bar(categories, counts, color=['blue', 'green', 'red'])
 
+            # Name der Achsen
             ax.set_title('Status', fontsize=title_size)
             ax.set_ylabel('Book Count', fontsize=label_size)
 
+            # Größe der Achsenbeschriftung festlegen
             ax.tick_params(axis='both', which='major', labelsize=tick_size)
             plt.tight_layout()
 
             self.save_plot_to_image(fig, self.book_count_image)
 
+    # Erstellung des Diagramms gelesene Bücher pro Monat
     def books_per_month_plot(self):
+        # SQL Abfrage, um die Daten aus der Datenbank zu erhalten
         data = self.get_books_per_month()
 
         # Größeneinstellungen (Schrift und Diagramm)
@@ -202,26 +210,31 @@ class StatisticsScreen(Screen):
         tick_size = base_font * 0.9
 
         if data:
+            # Monate gegen Anzahl der Bücher auftragen
             months, counts = zip(*[(int(m), c) for m, c in data if m])
             fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi)
 
             # Säulendiagramm erstellen
             ax.bar(months, counts, color='blue')
 
+            # Achsenabschnitte festlegen und Beschriftung der x-Achse
             ax.set_xticks(range(1, 13))
             ax.set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
 
+            # Name der Achsen
             ax.set_title('Books Per Month', fontsize=title_size)
             ax.set_ylabel('Books Read', fontsize=label_size)
 
+            # Größe der Achsenbeschriftung festlegen und x-Beschriftung rotieren (sonst überlappen die Beschriftungen schnell auf dem Handy Bildschirm)
             ax.tick_params(axis='both', labelsize=tick_size)
             plt.xticks(rotation=-90)
             plt.tight_layout()
 
             self.save_plot_to_image(fig, self.books_read_per_month)
 
-
+    # Erstellung des Diagramms gelesene Seiten pro Monat
     def pages_per_month_plot(self):
+        # SQL Abfrage, um die Daten aus der Datenbank zu erhalten
         data = self.get_pages_per_month()
 
         # Größeneinstellungen (Schrift und Diagramm)
@@ -234,25 +247,31 @@ class StatisticsScreen(Screen):
         tick_size = base_font * 0.9
 
         if data:
+            # Monate gegen Anzahl der Seiten auftragen
             months, pages = zip(*[(int(m), p) for m, p in data if m])
             fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi)
 
             # Säulendiagramm erstellen
             ax.bar(months, pages, color='purple')
 
+            # Achsenabschnitte festlegen und Beschriftung der x-Achse
             ax.set_xticks(range(1, 13))
             ax.set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun','Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
 
+            # Name der Achsen
             ax.set_title('Pages Per Month', fontsize=title_size)
             ax.set_ylabel('Total Pages Read', fontsize=label_size)
 
+            # Größe der Achsenbeschriftung festlegen und x-Beschriftung rotieren (sonst überlappen die Beschriftungen schnell auf dem Handy Bildschirm)
             ax.tick_params(axis='both', labelsize=tick_size)
             plt.xticks(rotation=-90)
             plt.tight_layout()
 
             self.save_plot_to_image(fig, self.pages_read_per_month)
 
+    # Erstellung des Diagramms Anzahl an Büchern pro Bewertung (0-6 Sterne)
     def rating_distribution_plot(self):
+        # SQL Abfrage, um die Daten aus der Datenbank zu erhalten
         data = self.get_ratings_distribution()
 
         # Größeneinstellungen (Schrift und Diagramm)
@@ -264,18 +283,22 @@ class StatisticsScreen(Screen):
         label_size = base_font * 1.3
         tick_size = base_font * 0.9
         if data:
+            # Bewertungen gegen Anzahl der Bücher auftragen
             ratings, counts = zip(*data)
             fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi)
 
             # Säulendiagramm erstellen
             ax.bar(ratings, counts, color='orange')
 
+            # Achsenabschnitte festlegen und Beschriftung der x-Achse
             ax.set_xticks([0, 1, 2, 3, 4, 5])
             ax.set_xticklabels(['Unrated', '1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'])
 
+            # Name der Achsen
             ax.set_title('Rating', fontsize=title_size)
             ax.set_ylabel('Book Count', fontsize=label_size)
 
+            # Größe der Achsenbeschriftung festlegen und x-Beschriftung rotieren (sonst überlappen die Beschriftungen schnell auf dem Handy Bildschirm)
             ax.tick_params(axis='both', labelsize=tick_size)
             plt.xticks(rotation=-90)
             plt.tight_layout()

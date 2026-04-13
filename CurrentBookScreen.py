@@ -1,24 +1,23 @@
+import sqlite3
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
-import sqlite3
-
 
 class CurrentBookScreen(Screen):
     book_id = None
 
-    def on_pre_enter(self):
-        App.get_running_app().last_screen = self.manager.current
-
     def load_book(self, book_id):
+        # book_id erstellen
         self.book_id = book_id
+
+        # Buch mit der book_id aus der Tabelle der Bücher abfragen, die der Nutzer momentan liest
         conn = sqlite3.connect('books_database.db')
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM reading_books WHERE id = ?", (book_id,))
         book = cursor.fetchone()
         conn.close()
 
+        # Wenn Buch vorhanden ist, sollen alle Widgets mit den Informationen vom Buch ausgefüllt werden
         if book:
-            # Setzen der Buchdetails in die Widgets
             self.ids.book_cover.source = book[1] or ''
             self.ids.book_title.text = book[2]
             self.ids.book_authors.text = book[3]
@@ -33,7 +32,9 @@ class CurrentBookScreen(Screen):
             print("Book not found")
 
     def delete_book(self):
+        # Sicherstellen, dass book_id existiert
         if self.book_id is not None:
+            # Eintrag vom Buch mit book_id aus der Datenbank löschen
             conn = sqlite3.connect('books_database.db')
             cursor = conn.cursor()
             cursor.execute("DELETE FROM reading_books WHERE id = ?", (self.book_id,))
@@ -41,6 +42,7 @@ class CurrentBookScreen(Screen):
             conn.close()
             print("Book deleted successfully")
 
+            # Daraufhin muss Screen verlassen (zurück zum Shelf Screen und Richtung der Transition festlegen)
             self.manager.transition.direction = "right"
             self.manager.current = 'shelf'
             self.manager.get_screen('shelf').load_books('reading')
@@ -48,12 +50,15 @@ class CurrentBookScreen(Screen):
             print("No book ID available for deletion")
 
     def move_to_read(self):
+        # Sicherstellen, dass book_id existiert
         if self.book_id is not None:
+            # Alle Informationen vom Buch mit book_id aus der Datenbank erhalten
             conn = sqlite3.connect('books_database.db')
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM reading_books WHERE id=?", (self.book_id,))
             book = cursor.fetchone()
 
+            # Alle Informationen vom Buch in die Tabelle der gelesenen Bücher eintragen
             if book:
                 cursor.execute(
                     "INSERT INTO read_books (cover, title, author, publication_year, genre, rating, description, page_count, publisher, maturity_rating, finished_date)"
@@ -72,21 +77,27 @@ class CurrentBookScreen(Screen):
                         'finished_date': ''  # Datum vorerst leer
                     })
 
+                # Anschließend muss das Buch selbst aus der Tabelle der momentanen Bücher gelöscht werden
                 cursor.execute("DELETE FROM reading_books WHERE id=?", (self.book_id,))
                 conn.commit()
                 print("Book has been moved to read_books")
             conn.close()
+
+            # Zurück zum Shelf Screen und Richtung der Transition festlegen
             self.manager.transition.direction = "right"
             self.manager.current = 'shelf'
             self.manager.get_screen('shelf').load_books('reading')
 
     def move_to_tbr(self):
+        # Sicherstellen, dass book_id existiert
         if self.book_id is not None:
+            # Alle Informationen vom Buch mit book_id aus der Datenbank erhalten
             conn = sqlite3.connect('books_database.db')
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM reading_books WHERE id=?", (self.book_id,))
             book = cursor.fetchone()
 
+            # Alle Informationen vom Buch in die Tabelle der zukünftigen Bücher eintragen
             if book:
                 cursor.execute(
                     "INSERT INTO tbr_books (cover, title, author, publication_year, genre, description, page_count, publisher, maturity_rating)"
@@ -103,10 +114,13 @@ class CurrentBookScreen(Screen):
                         'maturity_rating': book[9]
                     })
 
+                # Anschließend muss das Buch selbst aus der Tabelle der momentanen Bücher gelöscht werden
                 cursor.execute("DELETE FROM reading_books WHERE id=?", (self.book_id,))
                 conn.commit()
                 print("Book has been moved to tbr_books")
             conn.close()
+
+            # Zurück zum Shelf Screen und Richtung der Transition festlegen
             self.manager.transition.direction = "right"
             self.manager.current = 'shelf'
             self.manager.get_screen('shelf').load_books('reading')

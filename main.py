@@ -1,6 +1,6 @@
-from kivy.core.window import Window
-from kivy.uix.screenmanager import ScreenManager, SlideTransition
 import sqlite3
+from kivy.core.window import Window
+from kivy.uix.screenmanager import ScreenManager
 from kivymd.app import MDApp
 from kivy.lang import Builder
 
@@ -25,6 +25,7 @@ class main(MDApp):
         self.initialize_book_database()
         Builder.load_file('windows.kv')
 
+        # Der ScreenManager managet alle Screens der Anwendung (welcher Screen dargestellt werden soll und auch die Transitionen zw. den Screens)
         self.sm = ScreenManager()
         self.sm.add_widget(HomeScreen(name='home'))
         self.sm.add_widget(ShelfScreen(name='shelf'))
@@ -36,36 +37,11 @@ class main(MDApp):
         self.sm.add_widget(ToBeReadScreen(name='tbr_book'))
         Window.clearcolor = (1, 1, 1, 1)
 
-        set_bars_colors((1, 0.898, 0.816, 1), (1, 0.898, 0.816, 1), "Light")
+        # Android System Bars in identischer Farbe (ästhetischer)
+        set_bars_colors((0.13, 0.13, 0.13, 1), (0.13, 0.13, 0.13, 1), "Light")
 
         return self.sm
 
-
-
-    def show_book_detail(self, book_data):
-        # Zugriff auf den BookDetailScreen über den ScreenManager
-        book_detail_screen = self.sm.get_screen('book_detail')
-        book_detail_screen.ids.book_cover.source = book_data['volumeInfo'].get('imageLinks', {}).get('thumbnail', '')
-        book_detail_screen.ids.book_title.text = book_data['volumeInfo'].get('title', 'Title missing')
-        book_detail_screen.ids.book_authors.text = ', '.join(book_data['volumeInfo'].get('authors', ['Author unknown']))
-        published_date = book_data['volumeInfo'].get('publishedDate', '')
-        year = published_date.split('-')[0] if published_date else 'Unknown'
-        book_detail_screen.ids.book_year.text = year
-        book_detail_screen.ids.book_genre.text = ', '.join(book_data['volumeInfo'].get('categories', ['Unknown']))
-        book_detail_screen.ids.book_description.text = book_data['volumeInfo'].get('description', 'No description available')
-
-        book_detail_screen.ids.book_publisher.text = book_data['volumeInfo'].get('publishedDate', '').split('-')[0]
-        page_count = book_data['volumeInfo'].get('pageCount', 0)
-        book_detail_screen.ids.book_page_count.text = str(page_count)
-        book_detail_screen.ids.book_maturity_rating.text = book_data['volumeInfo'].get('maturityRating', '')
-
-        self.sm.current = 'book_detail'
-
-        # Transitionsrichtung setzen
-        self.sm.transition = SlideTransition(direction='right')
-        self.sm.current = 'book_detail'
-        # Transitionsrichtung zurücksetzen auf Standardwert (links)
-        self.sm.transition = SlideTransition(direction='left')
 
     def initialize_book_database(self):
         # Verbindung zur Datenbank herstellen
@@ -139,8 +115,6 @@ class main(MDApp):
         conn.commit()
         # Schließen der Verbindung
         conn.close()
-
-
 
 if __name__ == '__main__':
     main().run()
