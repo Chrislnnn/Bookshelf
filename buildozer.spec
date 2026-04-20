@@ -1,7 +1,7 @@
 [app]
 
 # (str) Title of your application
-title = My Application
+title = Bookshelf
 
 # (str) Package name
 package.name = myapp
@@ -47,7 +47,7 @@ requirements = python3,kivy==2.3.0,https://github.com/kivymd/KivyMD/archive/mast
 #presplash.filename = %(source.dir)s/data/presplash.png
 
 # (str) Icon of the application
-#icon.filename = %(source.dir)s/data/icon.png
+icon.filename = bookshelf_icon.png
 
 # (list) Supported orientations
 # Valid options are: landscape, portrait, portrait-reverse or landscape-reverse
