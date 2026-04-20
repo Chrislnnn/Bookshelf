@@ -877,7 +877,7 @@ WindowManager:
 
                     AnchorLayout:
                         size_hint_y: None
-                        height: 100
+                        height: root.height * 0.2
 
                         BoxLayout:
                             orientation: 'horizontal'
@@ -973,11 +973,20 @@ WindowManager:
                         height: 0
                         opacity: 0
 
+                    Widget:
+                        size_hint_y: None
+                        height: 1
+                        canvas.before:
+                            Color:
+                                rgba: 0, 0, 0, 1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
 
                     BoxLayout:
                         orientation: 'vertical'
                         size_hint_y: None
-                        height: 200
+                        height: root.height * 0.3
 
                         AnchorLayout:
                             anchor_x: 'center'
