@@ -146,8 +146,8 @@ class ReadBookScreen(Screen):
             # Alle Informationen vom Buch in die Tabelle der Bücher eintragen, die der Nutzer momentan liest
             if book:
                 cursor.execute(
-                    "INSERT INTO reading_books (cover, title, author, publication_year, genre, progress, description, page_count, publisher, maturity_rating)"
-                    " VALUES (:cover, :title, :author, :publication_year, :genre, :progress, :description, :page_count, :publisher, :maturity_rating)",
+                    "INSERT INTO reading_books (cover, title, author, publication_year, genre, description, page_count, publisher, maturity_rating)"
+                    " VALUES (:cover, :title, :author, :publication_year, :genre, :description, :page_count, :publisher, :maturity_rating)",
                     {
                         'cover': book[1],
                         'title': book[2],
